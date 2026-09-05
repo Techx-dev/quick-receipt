@@ -1,1 +1,793 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b0f14" />
+  <title>QuickReceipt</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23141d27'/%3E%3Cpath d='M19 11h26a4 4 0 0 1 4 4v37l-8-5-9 6-9-6-8 5V15a4 4 0 0 1 4-4Z' fill='none' stroke='%23f4f7f9' stroke-width='4' stroke-linejoin='round'/%3E%3Cpath d='m24 33 6 6 11-13' fill='none' stroke='%2325d366' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --panel: rgba(18, 25, 34, 0.88);
+      --panel-strong: #141d27;
+      --field: #0e151d;
+      --line: rgba(255, 255, 255, 0.1);
+      --line-strong: rgba(255, 255, 255, 0.16);
+      --text: #f4f7f9;
+      --muted: #92a0ae;
+      --accent: #25d366;
+      --accent-dark: #139a49;
+      --accent-soft: rgba(37, 211, 102, 0.12);
+      --danger: #ff7b86;
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.34);
+      --radius: 24px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 8% 0%, rgba(37, 211, 102, 0.13), transparent 31rem),
+        radial-gradient(circle at 100% 100%, rgba(25, 118, 210, 0.1), transparent 28rem),
+        var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .app-shell {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 56px 0 48px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 28px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 36px;
+      height: 36px;
+      place-items: center;
+      background: var(--accent-soft);
+      border: 1px solid rgba(37, 211, 102, 0.28);
+      border-radius: 11px;
+      box-shadow: 0 8px 25px rgba(37, 211, 102, 0.2);
+    }
+
+    .brand-mark svg {
+      width: 23px;
+      height: 23px;
+      overflow: visible;
+    }
+
+    .brand-mark .receipt-outline {
+      fill: none;
+      stroke: #f4f7f9;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 1.8;
+    }
+
+    .brand-mark .receipt-check {
+      fill: none;
+      stroke: var(--accent);
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 2.3;
+    }
+
+    .intro {
+      max-width: 700px;
+      margin-bottom: 34px;
+    }
+
+    h1 {
+      max-width: 650px;
+      margin: 0 0 12px;
+      font-size: clamp(2.25rem, 5vw, 4.5rem);
+      line-height: 0.98;
+      letter-spacing: -0.06em;
+    }
+
+    .intro p {
+      max-width: 600px;
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(1rem, 2vw, 1.16rem);
+      line-height: 1.65;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .panel {
+      padding: clamp(22px, 4vw, 34px);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .panel-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 25px;
+    }
+
+    .eyebrow {
+      margin: 0 0 7px;
+      color: var(--accent);
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1.35rem;
+      letter-spacing: -0.03em;
+    }
+
+    .step {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      flex: 0 0 auto;
+      place-items: center;
+      border: 1px solid rgba(37, 211, 102, 0.3);
+      border-radius: 50%;
+      color: var(--accent);
+      background: var(--accent-soft);
+      font-size: 0.82rem;
+      font-weight: 800;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 17px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    label {
+      color: #c4cdd5;
+      font-size: 0.84rem;
+      font-weight: 700;
+    }
+
+    input,
+    select {
+      width: 100%;
+      border: 1px solid var(--line);
+      outline: 0;
+      padding: 14px 15px;
+      color: var(--text);
+      background: var(--field);
+      border-radius: 13px;
+      transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+    }
+
+    select {
+      cursor: pointer;
+      appearance: auto;
+    }
+
+    input::placeholder {
+      color: #667482;
+    }
+
+    input:hover,
+    select:hover {
+      border-color: var(--line-strong);
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--accent);
+      background: #101a21;
+      box-shadow: 0 0 0 4px rgba(37, 211, 102, 0.1);
+    }
+
+    input[aria-invalid="true"] {
+      border-color: var(--danger);
+      box-shadow: 0 0 0 4px rgba(255, 123, 134, 0.08);
+    }
+
+    .helper {
+      min-height: 17px;
+      margin: -3px 0 0;
+      color: var(--danger);
+      font-size: 0.75rem;
+    }
+
+    .primary-button,
+    .copy-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      min-height: 50px;
+      border: 0;
+      border-radius: 13px;
+      cursor: pointer;
+      font-weight: 800;
+      transition: transform 160ms ease, filter 160ms ease, box-shadow 160ms ease;
+    }
+
+    .primary-button {
+      width: 100%;
+      margin-top: 3px;
+      color: #06110a;
+      background: var(--accent);
+      box-shadow: 0 11px 24px rgba(37, 211, 102, 0.16);
+    }
+
+    .primary-button:hover,
+    .copy-button:hover {
+      filter: brightness(1.08);
+      transform: translateY(-1px);
+    }
+
+    .primary-button:active,
+    .copy-button:active {
+      transform: translateY(0);
+    }
+
+    .primary-button:focus-visible,
+    .copy-button:focus-visible {
+      outline: 3px solid rgba(255, 255, 255, 0.55);
+      outline-offset: 3px;
+    }
+
+    .receipt-panel {
+      position: sticky;
+      top: 20px;
+    }
+
+    .receipt-stage {
+      display: flex;
+      justify-content: center;
+      padding: 19px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #0b1117;
+    }
+
+    .receipt {
+      width: min(100%, 440px);
+      min-height: 370px;
+      padding: 27px 25px 24px;
+      color: #e4e9ed;
+      background:
+        linear-gradient(rgba(255, 255, 255, 0.015), rgba(255, 255, 255, 0.015)),
+        #111820;
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 14px;
+      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.2);
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 0.84rem;
+      line-height: 1.7;
+    }
+
+    .receipt-header {
+      padding-bottom: 18px;
+      text-align: center;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.18);
+    }
+
+    .receipt-icon {
+      display: inline-grid;
+      width: 42px;
+      height: 42px;
+      margin-bottom: 8px;
+      place-items: center;
+      border-radius: 13px;
+      background: var(--accent-soft);
+      font-family: Inter, sans-serif;
+      font-size: 1.35rem;
+    }
+
+    .receipt-title {
+      margin: 0;
+      color: #fff;
+      font-family: Inter, sans-serif;
+      font-size: 1.04rem;
+      font-weight: 850;
+      letter-spacing: 0.08em;
+    }
+
+    .receipt-subtitle {
+      margin: 3px 0 0;
+      color: #7f8d98;
+      font-family: Inter, sans-serif;
+      font-size: 0.72rem;
+    }
+
+    .receipt-details {
+      display: grid;
+      gap: 11px;
+      padding: 20px 0;
+    }
+
+    .receipt-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .receipt-line span:first-child {
+      color: #96a4ae;
+    }
+
+    .receipt-line span:last-child {
+      max-width: 64%;
+      color: #eff3f5;
+      overflow-wrap: anywhere;
+      text-align: right;
+    }
+
+    .receipt-total {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      padding: 17px 0;
+      border-top: 1px dashed rgba(255, 255, 255, 0.18);
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.18);
+      color: var(--accent);
+      font-weight: 800;
+    }
+
+    .receipt-payment {
+      display: grid;
+      gap: 10px;
+      padding: 17px 0 0;
+    }
+
+    .receipt-payment-title {
+      margin: 0 0 2px;
+      color: var(--accent);
+      font-family: Inter, sans-serif;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+
+    .receipt-footer {
+      padding-top: 18px;
+      color: #aab7c0;
+      font-family: Inter, sans-serif;
+      font-size: 0.8rem;
+      text-align: center;
+    }
+
+    .copy-button {
+      width: 100%;
+      margin-top: 16px;
+      color: #fff;
+      background: #1b2935;
+      border: 1px solid var(--line-strong);
+    }
+
+    .copy-button.copied {
+      color: #07110a;
+      background: var(--accent);
+      border-color: transparent;
+    }
+
+    .copy-status {
+      min-height: 20px;
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 0.75rem;
+      text-align: center;
+    }
+
+    .copy-status.success {
+      color: var(--accent);
+    }
+
+    @media (max-width: 780px) {
+      .app-shell {
+        padding-top: 32px;
+      }
+
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .receipt-panel {
+        position: static;
+      }
+    }
+
+    @media (max-width: 470px) {
+      .app-shell {
+        width: min(100% - 22px, 1120px);
+        padding-bottom: 25px;
+      }
+
+      .panel {
+        padding: 20px 17px;
+        border-radius: 19px;
+      }
+
+      .field-row {
+        grid-template-columns: 1fr;
+      }
+
+      .receipt-stage {
+        padding: 10px;
+      }
+
+      .receipt {
+        padding: 23px 17px 21px;
+        font-size: 0.76rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32" role="img">
+          <path class="receipt-outline" d="M9 4.5h14a2 2 0 0 1 2 2v19l-4-2.6-4 2.6-4-2.6-4 2.6v-19a2 2 0 0 1 2-2Z" />
+          <path class="receipt-outline" d="M12 10h8M12 14h8" />
+          <path class="receipt-check" d="m12 19 2.2 2.2L19 16.5" />
+        </svg>
+      </span>
+      QuickReceipt
+    </div>
+
+    <header class="intro">
+      <h1>QuickReceipt</h1>
+      <p>Fast, professional receipts for WhatsApp vendors.</p>
+    </header>
+
+    <section class="workspace" aria-label="Receipt generator">
+      <section class="panel" aria-labelledby="details-heading">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Order details</p>
+            <h2 id="details-heading">Build your receipt</h2>
+          </div>
+          <span class="step" aria-label="Step 1">1</span>
+        </div>
+
+        <form id="receipt-form" class="form-grid" novalidate>
+          <div class="field">
+            <label for="customer-name">Customer name</label>
+            <input id="customer-name" name="customerName" type="text" placeholder="e.g. Ama Mensah" autocomplete="name" required />
+            <p class="helper" id="customer-name-error" aria-live="polite"></p>
+          </div>
+
+          <div class="field">
+            <label for="item-purchased">Item purchased</label>
+            <input id="item-purchased" name="itemPurchased" type="text" placeholder="e.g. Handmade tote bag" required />
+            <p class="helper" id="item-purchased-error" aria-live="polite"></p>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="quantity">Quantity</label>
+              <input id="quantity" name="quantity" type="number" min="1" step="1" inputmode="numeric" placeholder="1" required />
+              <p class="helper" id="quantity-error" aria-live="polite"></p>
+            </div>
+            <div class="field">
+              <label for="price">Price per item (<span id="price-currency-label">GH₵</span>)</label>
+              <input id="price" name="price" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00" required />
+              <p class="helper" id="price-error" aria-live="polite"></p>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="delivery-fee">Delivery fee (<span id="delivery-currency-label">GH₵</span>) <span style="color: #667482; font-weight: 500;">(optional)</span></label>
+            <input id="delivery-fee" name="deliveryFee" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00" value="0" />
+            <p class="helper" id="delivery-fee-error" aria-live="polite"></p>
+          </div>
+
+          <div class="field">
+            <label for="currency">Currency</label>
+            <select id="currency" name="currency" aria-label="Currency">
+              <option value="GH₵">GH₵</option>
+              <option value="$">$</option>
+              <option value="₦">₦</option>
+            </select>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="momo-number">MoMo Number <span style="color: #667482; font-weight: 500;">(optional)</span></label>
+              <input id="momo-number" name="momoNumber" type="tel" inputmode="tel" placeholder="e.g. 024 000 0000" autocomplete="tel" />
+            </div>
+            <div class="field">
+              <label for="account-name">Account Name <span style="color: #667482; font-weight: 500;">(optional)</span></label>
+              <input id="account-name" name="accountName" type="text" placeholder="e.g. Ama Mensah" autocomplete="name" />
+            </div>
+          </div>
+
+          <button class="primary-button" type="submit">
+            <span aria-hidden="true">✨</span>
+            Generate Receipt
+          </button>
+        </form>
+      </section>
+
+      <section class="panel receipt-panel" aria-labelledby="preview-heading">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Live preview</p>
+            <h2 id="preview-heading">Your WhatsApp receipt</h2>
+          </div>
+          <span class="step" aria-label="Step 2">2</span>
+        </div>
+
+        <div class="receipt-stage">
+          <article class="receipt" aria-live="polite" aria-label="Receipt preview">
+            <header class="receipt-header">
+              <div class="receipt-icon" aria-hidden="true">🧾</div>
+              <p class="receipt-title">ORDER RECEIPT</p>
+              <p class="receipt-subtitle">Thank you for shopping with us</p>
+            </header>
+
+            <div class="receipt-details">
+              <div class="receipt-line"><span>👤 Customer</span><span id="preview-customer">Your customer</span></div>
+              <div class="receipt-line"><span>🛍️ Item</span><span id="preview-item">Your item</span></div>
+              <div class="receipt-line"><span>🔢 Quantity</span><span id="preview-quantity">—</span></div>
+              <div class="receipt-line"><span>💰 Price / item (<span id="preview-price-currency">GH₵</span>)</span><span id="preview-price">—</span></div>
+              <div class="receipt-line"><span>🚚 Delivery (<span id="preview-delivery-currency">GH₵</span>)</span><span id="preview-delivery">—</span></div>
+            </div>
+
+            <div class="receipt-total">
+              <span>💵 TOTAL (<span id="preview-total-currency">GH₵</span>)</span>
+              <span id="preview-total">—</span>
+            </div>
+
+            <div class="receipt-payment" id="preview-payment" hidden>
+              <p class="receipt-payment-title">📱 MoMo PAYMENT DETAILS</p>
+              <div class="receipt-line"><span>📞 MoMo Number</span><span id="preview-momo-number">—</span></div>
+              <div class="receipt-line"><span>👤 Account Name</span><span id="preview-account-name">—</span></div>
+            </div>
+
+            <footer class="receipt-footer">✅ We appreciate your order!</footer>
+          </article>
+        </div>
+
+        <button class="copy-button" id="copy-button" type="button">
+          <span aria-hidden="true">📋</span>
+          Copy for WhatsApp
+        </button>
+        <p class="copy-status" id="copy-status" role="status" aria-live="polite"></p>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const form = document.getElementById("receipt-form");
+      const copyButton = document.getElementById("copy-button");
+      const copyStatus = document.getElementById("copy-status");
+      const fields = {
+        customerName: document.getElementById("customer-name"),
+        itemPurchased: document.getElementById("item-purchased"),
+        quantity: document.getElementById("quantity"),
+        price: document.getElementById("price"),
+        deliveryFee: document.getElementById("delivery-fee"),
+        currency: document.getElementById("currency"),
+        momoNumber: document.getElementById("momo-number"),
+        accountName: document.getElementById("account-name")
+      };
+      const preview = {
+        customerName: document.getElementById("preview-customer"),
+        itemPurchased: document.getElementById("preview-item"),
+        quantity: document.getElementById("preview-quantity"),
+        price: document.getElementById("preview-price"),
+        deliveryFee: document.getElementById("preview-delivery"),
+        total: document.getElementById("preview-total"),
+        priceCurrency: document.getElementById("preview-price-currency"),
+        deliveryCurrency: document.getElementById("preview-delivery-currency"),
+        totalCurrency: document.getElementById("preview-total-currency"),
+        payment: document.getElementById("preview-payment"),
+        momoNumber: document.getElementById("preview-momo-number"),
+        accountName: document.getElementById("preview-account-name")
+      };
+      const priceCurrencyLabel = document.getElementById("price-currency-label");
+      const deliveryCurrencyLabel = document.getElementById("delivery-currency-label");
+
+      const numberFormat = new Intl.NumberFormat(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+
+      const money = (value) => `${fields.currency.value}${numberFormat.format(Number(value) || 0)}`;
+      const cleanText = (value, fallback) => value.trim() || fallback;
+
+      function setError(field, message) {
+        const error = document.getElementById(`${field.id}-error`);
+        field.setAttribute("aria-invalid", message ? "true" : "false");
+        error.textContent = message;
+      }
+
+      function validate() {
+        let valid = true;
+        const customer = fields.customerName.value.trim();
+        const item = fields.itemPurchased.value.trim();
+        const quantity = Number(fields.quantity.value);
+        const price = Number(fields.price.value);
+        const delivery = Number(fields.deliveryFee.value || 0);
+
+        setError(fields.customerName, customer ? "" : "Add the customer's name.");
+        setError(fields.itemPurchased, item ? "" : "Add the item purchased.");
+        setError(fields.quantity, Number.isInteger(quantity) && quantity > 0 ? "" : "Use a whole number above 0.");
+        setError(fields.price, Number.isFinite(price) && price >= 0 && fields.price.value !== "" ? "" : "Enter a valid price.");
+        setError(fields.deliveryFee, Number.isFinite(delivery) && delivery >= 0 ? "" : "Enter 0 or a valid fee.");
+
+        if (!customer || !item || !Number.isInteger(quantity) || quantity <= 0 ||
+            !Number.isFinite(price) || price < 0 || fields.price.value === "" ||
+            !Number.isFinite(delivery) || delivery < 0) {
+          valid = false;
+        }
+        return valid;
+      }
+
+      function getReceiptText() {
+        const customer = cleanText(fields.customerName.value, "Customer");
+        const item = cleanText(fields.itemPurchased.value, "Item");
+        const quantity = Number(fields.quantity.value) || 0;
+        const price = Number(fields.price.value) || 0;
+        const delivery = Number(fields.deliveryFee.value) || 0;
+        const momoNumber = fields.momoNumber.value.trim();
+        const accountName = fields.accountName.value.trim();
+        const total = (quantity * price) + delivery;
+        const paymentLines = momoNumber || accountName
+          ? [
+              "",
+              "📱 *MoMo PAYMENT DETAILS*",
+              `📞 MoMo Number: ${momoNumber || "—"}`,
+              `👤 Account Name: ${accountName || "—"}`
+            ]
+          : [];
+
+        return [
+          "🧾 *ORDER RECEIPT*",
+          "━━━━━━━━━━━━━━━━━━",
+          `👤 Customer: ${customer}`,
+          `🛍️ Item: ${item}`,
+          `🔢 Quantity: ${quantity}`,
+          `💰 Price per item: ${money(price)}`,
+          `🚚 Delivery fee: ${money(delivery)}`,
+          "━━━━━━━━━━━━━━━━━━",
+          `💵 *TOTAL: ${money(total)}*`,
+          ...paymentLines,
+          "",
+          "✅ Thank you for your order!"
+        ].join("\n");
+      }
+
+      function updatePreview() {
+        const quantity = Number(fields.quantity.value) || 0;
+        const price = Number(fields.price.value) || 0;
+        const delivery = Number(fields.deliveryFee.value) || 0;
+        const momoNumber = fields.momoNumber.value.trim();
+        const accountName = fields.accountName.value.trim();
+        const total = quantity * price + delivery;
+
+        preview.customerName.textContent = cleanText(fields.customerName.value, "Your customer");
+        preview.itemPurchased.textContent = cleanText(fields.itemPurchased.value, "Your item");
+        preview.quantity.textContent = quantity || "—";
+        preview.price.textContent = fields.price.value === "" ? "—" : money(price);
+        preview.deliveryFee.textContent = fields.deliveryFee.value === "" ? "—" : money(delivery);
+        preview.total.textContent = fields.price.value === "" || fields.quantity.value === "" ? "—" : money(total);
+        priceCurrencyLabel.textContent = fields.currency.value;
+        deliveryCurrencyLabel.textContent = fields.currency.value;
+        preview.priceCurrency.textContent = fields.currency.value;
+        preview.deliveryCurrency.textContent = fields.currency.value;
+        preview.totalCurrency.textContent = fields.currency.value;
+        preview.momoNumber.textContent = momoNumber || "—";
+        preview.accountName.textContent = accountName || "—";
+        preview.payment.hidden = !momoNumber && !accountName;
+      }
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        if (!validate()) {
+          const firstInvalid = form.querySelector('[aria-invalid="true"]');
+          if (firstInvalid) firstInvalid.focus();
+          return;
+        }
+        updatePreview();
+        copyStatus.textContent = "Receipt updated — ready to copy.";
+        copyStatus.className = "copy-status";
+      });
+
+      Object.values(fields).forEach((field) => {
+        const handleFieldChange = () => {
+          updatePreview();
+          if (field.getAttribute("aria-invalid") === "true") validate();
+          copyStatus.textContent = "";
+        };
+        field.addEventListener("input", handleFieldChange);
+        field.addEventListener("change", handleFieldChange);
+      });
+
+      copyButton.addEventListener("click", async () => {
+        if (!validate()) {
+          const firstInvalid = form.querySelector('[aria-invalid="true"]');
+          if (firstInvalid) firstInvalid.focus();
+          copyStatus.textContent = "Complete the required fields first.";
+          return;
+        }
+
+        const receiptText = getReceiptText();
+        try {
+          if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(receiptText);
+          } else {
+            const textArea = document.createElement("textarea");
+            textArea.value = receiptText;
+            textArea.style.position = "fixed";
+            textArea.style.opacity = "0";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            document.execCommand("copy");
+            textArea.remove();
+          }
+          copyButton.classList.add("copied");
+          copyButton.innerHTML = '<span aria-hidden="true">✓</span> Copied to clipboard';
+          copyStatus.textContent = "Paste it directly into WhatsApp.";
+          copyStatus.className = "copy-status success";
+          window.setTimeout(() => {
+            copyButton.classList.remove("copied");
+            copyButton.innerHTML = '<span aria-hidden="true">📋</span> Copy for WhatsApp';
+          }, 2400);
+        } catch (error) {
+          copyStatus.textContent = "Could not copy automatically. Select and copy the receipt text manually.";
+          copyStatus.className = "copy-status";
+        }
+      });
+
+      updatePreview();
+    })();
+  </script>
+</body>
+</html>
